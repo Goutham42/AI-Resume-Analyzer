@@ -13,13 +13,11 @@ export default function Register() {
   try {
     const { data } = await API.post("/auth/register", { email, password });
 
-    // Save JWT token from backend
     localStorage.setItem("token", data.token);
 
     alert("Account created successfully 🚀");
     navigate("/dashboard"); // go to dashboard directly
   } catch (err) {
-    // show backend error if exists
     alert(err.response?.data?.message || "Registration failed. Try again.");
   }
 };
