@@ -1,22 +1,17 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { Suspense, lazy, useState, useEffect } from "react";
+import { Suspense, lazy, useState } from "react";
 
 // Pages
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 
+// ✅ Initialize auth state directly from localStorage
 function App() {
-  // Auth state: true if token exists
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    !!localStorage.getItem("token")
+  );
 
-  // Check token on app load
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) setIsAuthenticated(true);
-  }, []);
-
-  // Handlers to update auth state after login/register
   const handleLogin = () => setIsAuthenticated(true);
   const handleRegister = () => setIsAuthenticated(true);
   const handleLogout = () => {
@@ -28,43 +23,22 @@ function App() {
     <Router>
       <Suspense fallback={<div style={{ textAlign: "center", marginTop: 50 }}>Loading...</div>}>
         <Routes>
-          {/* LOGIN */}
           <Route
             path="/"
             element={
-              isAuthenticated ? (
-                <Navigate to="/dashboard" />
-              ) : (
-                <Login onLogin={handleLogin} />
-              )
+              isAuthenticated ? <Navigate to="/dashboard" /> : <Login onLogin={handleLogin} />
             }
           />
-
-          {/* REGISTER */}
           <Route
             path="/register"
             element={
-              isAuthenticated ? (
-                <Navigate to="/dashboard" />
-              ) : (
-                <Register onRegister={handleRegister} />
-              )
+              isAuthenticated ? <Navigate to="/dashboard" /> : <Register onRegister={handleRegister} />
             }
           />
-
-          {/* DASHBOARD */}
           <Route
             path="/dashboard"
-            element={
-              isAuthenticated ? (
-                <Dashboard onLogout={handleLogout} />
-              ) : (
-                <Navigate to="/" />
-              )
-            }
+            element={isAuthenticated ? <Dashboard onLogout={handleLogout} /> : <Navigate to="/" />}
           />
-
-          {/* CATCH ALL */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </Suspense>

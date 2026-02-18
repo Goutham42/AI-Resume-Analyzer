@@ -5,11 +5,9 @@ import { jsPDF } from "jspdf";
 
 /* ---------- HELPERS ---------- */
 
-// Resume score logic
 const calculateScore = (text) => {
   let score = 0;
   const lower = text.toLowerCase();
-
   if (text.length > 300) score += 20;
   if (text.length > 700) score += 20;
 
@@ -22,18 +20,6 @@ const calculateScore = (text) => {
   return Math.min(score, 100);
 };
 
-// Detect resume sections
-const detectSections = (text) => {
-  const lower = text.toLowerCase();
-  return {
-    skills: /skills|technologies/.test(lower),
-    experience: /experience|employment/.test(lower),
-    projects: /projects|works/.test(lower),
-    certifications: /certification|certificate/.test(lower),
-  };
-};
-
-// Parse AI feedback
 const parseFeedback = (text = "") => ({
   strengths: text.match(/Strengths:(.*?)(Weaknesses:|$)/s)?.[1]?.trim() || "—",
   weaknesses: text.match(/Weaknesses:(.*?)(Improvement|$)/s)?.[1]?.trim() || "—",
@@ -64,21 +50,9 @@ const styles = {
     boxShadow: "0 30px 90px rgba(0,0,0,0.6)",
     color: "#fff",
   },
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  content: {
-    display: "flex",
-    gap: 28,
-    flexWrap: "wrap",
-  },
-  panel: {
-    flex: "1 1 420px",
-    maxWidth: 520,
-  },
+  header: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 },
+  content: { display: "flex", gap: 28, flexWrap: "wrap" },
+  panel: { flex: "1 1 420px", maxWidth: 520 },
   select: {
     width: "100%",
     padding: "12px 14px",
@@ -112,13 +86,7 @@ const styles = {
     color: "#fff",
     boxShadow: "0 8px 20px rgba(99,102,241,0.35)",
   },
-  meter: {
-    height: 8,
-    background: "rgba(255,255,255,0.2)",
-    borderRadius: 10,
-    overflow: "hidden",
-    marginTop: 6,
-  },
+  meter: { height: 8, background: "rgba(255,255,255,0.2)", borderRadius: 10, overflow: "hidden", marginTop: 6 },
   meterFill: (score) => ({
     width: `${score}%`,
     height: "100%",
@@ -130,18 +98,12 @@ const styles = {
         : "linear-gradient(90deg,#ef4444,#f87171)",
     transition: "width .6s ease",
   }),
-  card: {
-    padding: 18,
-    borderRadius: 16,
-    background: "rgba(255,255,255,0.15)",
-    border: "1px solid rgba(255,255,255,0.3)",
-    marginBottom: 14,
-  },
+  card: { padding: 18, borderRadius: 16, background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)", marginBottom: 14 },
 };
 
 /* ---------- DASHBOARD COMPONENT ---------- */
 
-export default function Dashboard() {
+export default function Dashboard({ onLogout }) {
   const navigate = useNavigate();
   const isMobile = window.innerWidth < 768;
 
@@ -153,18 +115,22 @@ export default function Dashboard() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
 
-  // Redirect if no token
+  // Load history safely
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (!token) navigate("/");
-    else setHistory(JSON.parse(localStorage.getItem("history")) || []);
+    if (!token) {
+      navigate("/");
+    } else {
+      try {
+        const storedHistory = JSON.parse(localStorage.getItem("history")) || [];
+        setHistory(storedHistory);
+      } catch {
+        setHistory([]);
+      }
+    }
   }, [navigate]);
 
-  const hasValidFeedback =
-    feedback &&
-    (feedback.strengths !== "—" ||
-      feedback.weaknesses !== "—" ||
-      feedback.improvements !== "—");
+  const hasValidFeedback = feedback && (feedback.strengths !== "—" || feedback.weaknesses !== "—" || feedback.improvements !== "—");
 
   const handleAnalyze = async () => {
     if (!resumeText) return alert("Paste resume first!");
@@ -174,22 +140,17 @@ export default function Dashboard() {
 
     try {
       const res = await API.post("/resume/analyze", { resumeText, jobRole });
-
       const finalScore = calculateScore(resumeText);
       setScore(finalScore);
       setFeedback(parseFeedback(res.data.feedback));
 
-      const updated = [
-        { date: new Date().toLocaleDateString(), role: jobRole, score: finalScore },
-        ...history,
-      ].slice(0, 5);
-
+      const updated = [{ date: new Date().toLocaleDateString(), role: jobRole, score: finalScore }, ...history].slice(0, 5);
       setHistory(updated);
       localStorage.setItem("history", JSON.stringify(updated));
     } catch (err) {
       if (err.response?.status === 401) {
         alert("Session expired. Please login again.");
-        localStorage.removeItem("token");
+        onLogout();
         navigate("/");
       } else {
         alert(err.response?.data?.message || "AI service error");
@@ -201,11 +162,9 @@ export default function Dashboard() {
 
   const handleDownloadPDF = () => {
     if (!feedback || score === null) return alert("Analyze resume first!");
-
     const doc = new jsPDF();
     doc.setFontSize(16);
     doc.text("AI Resume Analysis Report", 20, 20);
-
     doc.setFontSize(12);
     doc.text(`Job Role: ${jobRole}`, 20, 35);
     doc.text(`Resume Score: ${score}/100`, 20, 45);
@@ -234,18 +193,14 @@ export default function Dashboard() {
       <div style={{ ...styles.glass, padding: isMobile ? 20 : 32 }}>
         <div style={styles.header}>
           <h2>🐋 AI Resume Analyzer</h2>
-
           <div style={{ display: "flex", gap: 10 }}>
-            <button
-              style={{ ...styles.button, width: isMobile ? "100%" : "auto" }}
-              onClick={() => setShowHistory(!showHistory)}
-            >
+            <button style={{ ...styles.button, width: isMobile ? "100%" : "auto" }} onClick={() => setShowHistory(!showHistory)}>
               ⌛ History
             </button>
             <button
               style={{ ...styles.button, width: isMobile ? "100%" : "auto" }}
               onClick={() => {
-                localStorage.clear();
+                onLogout(); // ✅ proper logout from App.jsx
                 navigate("/");
               }}
             >
@@ -257,11 +212,7 @@ export default function Dashboard() {
         <div style={{ ...styles.content, flexDirection: isMobile ? "column" : "row" }}>
           {/* LEFT PANEL */}
           <div style={{ ...styles.panel, maxWidth: isMobile ? "100%" : 520 }}>
-            <select
-              value={jobRole}
-              onChange={(e) => setJobRole(e.target.value)}
-              style={styles.select}
-            >
+            <select value={jobRole} onChange={(e) => setJobRole(e.target.value)} style={styles.select}>
               <option>Frontend Developer</option>
               <option>Backend Developer</option>
               <option>Full Stack Developer</option>
@@ -274,11 +225,7 @@ export default function Dashboard() {
               onChange={(e) => setResumeText(e.target.value)}
             />
 
-            <button
-              style={{ ...styles.button, width: isMobile ? "100%" : "auto" }}
-              onClick={handleAnalyze}
-              disabled={isAnalyzing}
-            >
+            <button style={{ ...styles.button, width: isMobile ? "100%" : "auto" }} onClick={handleAnalyze} disabled={isAnalyzing}>
               {isAnalyzing ? "Analyzing..." : "Analyze Resume"}
             </button>
 
@@ -305,10 +252,7 @@ export default function Dashboard() {
                 <h3>🚀 Improvements</h3>
                 <p>{feedback.improvements}</p>
 
-                <button
-                  style={{ ...styles.button, marginTop: 12, width: "100%" }}
-                  onClick={handleDownloadPDF}
-                >
+                <button style={{ ...styles.button, marginTop: 12, width: "100%" }} onClick={handleDownloadPDF}>
                   📄 Download PDF
                 </button>
               </div>

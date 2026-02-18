@@ -2,25 +2,23 @@ import { useState } from "react";
 import API from "../services/api";
 import { useNavigate } from "react-router-dom";
 
-export default function Register() {
+export default function Register({ onRegister }) { // ✅ receive prop
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
   const handleRegister = async () => {
-  if (!email || !password) return alert("Fill all fields");
+    if (!email || !password) return alert("Fill all fields");
 
-  try {
-    const { data } = await API.post("/auth/register", { email, password });
-    localStorage.setItem("token", data.token); // store token
-    onRegister(); // 🔑 update auth state in App.jsx
-    navigate("/dashboard"); // navigate immediately
-  } catch (err) {
-    alert(err.response?.data?.message || "Registration failed. Try again.");
-  }
-};
-
-
+    try {
+      const { data } = await API.post("/auth/register", { email, password });
+      localStorage.setItem("token", data.token); // store token
+      onRegister(); // 🔑 update auth state in App.jsx
+      navigate("/dashboard"); // navigate immediately
+    } catch (err) {
+      alert(err.response?.data?.message || "Registration failed. Try again.");
+    }
+  };
 
   return (
     <div style={styles.container}>
@@ -64,6 +62,9 @@ export default function Register() {
     </div>
   );
 }
+
+// 🔹 styles remain same as your previous code
+
 
 // ...styles remain same as your previous code
 

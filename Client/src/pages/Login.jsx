@@ -2,28 +2,27 @@ import { useState } from "react";
 import API from "../services/api";
 import { useNavigate } from "react-router-dom";
 
-export default function Login() {
+export default function Login({ onLogin }) { // ✅ receive prop
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async () => {
-  if (!email || !password) return alert("Fill all fields");
-  setLoading(true);
+    if (!email || !password) return alert("Fill all fields");
+    setLoading(true);
 
-  try {
-    const res = await API.post("/auth/login", { email, password });
-    localStorage.setItem("token", res.data.token); // store token
-    onLogin(); // 🔑 update auth state in App.jsx
-    navigate("/dashboard"); // navigate immediately
-  } catch {
-    alert("Login failed. Check credentials.");
-  } finally {
-    setLoading(false);
-  }
-};
-
+    try {
+      const res = await API.post("/auth/login", { email, password });
+      localStorage.setItem("token", res.data.token); // store token
+      onLogin(); // 🔑 update auth state in App.jsx
+      navigate("/dashboard"); // navigate immediately
+    } catch {
+      alert("Login failed. Check credentials.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div style={styles.container}>
@@ -64,6 +63,9 @@ export default function Login() {
     </div>
   );
 }
+
+// 🔹 styles remain same as your previous code
+
 
 // ...styles remain same as your previous code
 
