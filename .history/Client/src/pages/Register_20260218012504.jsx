@@ -2,38 +2,37 @@ import { useState } from "react";
 import API from "../services/api";
 import { useNavigate } from "react-router-dom";
 
-export default function Login() {
+export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = async () => {
-    if (!email || !password) return alert("Fill all fields");
-    setLoading(true);
+  const handleRegister = async () => {
+  if (!email || !password) return alert("Fill all fields");
 
-    try {
-      const res = await API.post("/auth/login", { email, password });
-      localStorage.setItem("token", res.data.token);
-      navigate("/dashboard"); // redirect immediately
-    } catch {
-      alert("Login failed. Check credentials.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    const { data } = await API.post("/auth/register", { email, password });
+
+    localStorage.setItem("token", data.token);
+
+    alert("Account created successfully 🚀");
+    navigate("/dashboard"); // go to dashboard directly
+  } catch (err) {
+    alert(err.response?.data?.message || "Registration failed. Try again.");
+  }
+};
 
   return (
     <div style={styles.container}>
       <div style={styles.glassCard}>
-        <h2 style={styles.title}>🔐 Welcome Back</h2>
-        <p style={styles.subtitle}>Login to continue</p>
+        <h2 style={styles.title}>Create Account</h2>
+        <p style={styles.subtitle}>Join & analyze your resume ✨</p>
 
         <input
           style={styles.input}
           placeholder="Email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={e => setEmail(e.target.value)}
         />
 
         <input
@@ -41,29 +40,30 @@ export default function Login() {
           type="password"
           placeholder="Password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={e => setPassword(e.target.value)}
         />
 
         <button
-          style={{ ...styles.button, opacity: loading ? 0.7 : 1 }}
-          onClick={handleLogin}
-          disabled={loading}
+          style={{
+            ...styles.button,
+            background: "linear-gradient(135deg, #22c55e, #16a34a)",
+            boxShadow: "0 10px 30px rgba(34,197,94,0.6)",
+          }}
+          onClick={handleRegister}
         >
-          {loading ? "Signing in..." : "Login"}
+          Register
         </button>
 
         <p style={styles.text}>
-          New here?{" "}
-          <span style={styles.link} onClick={() => navigate("/register")}>
-            Create account →
+          Already have an account?{" "}
+          <span style={styles.link} onClick={() => navigate("/")}>
+            Login
           </span>
         </p>
       </div>
     </div>
   );
 }
-
-// ...styles unchanged from your previous code
 
 
 
@@ -109,16 +109,16 @@ const styles = {
 
   input: {
     width: "100%",
-    padding: "14px 0px",
+    padding: "14px 16px",
     marginBottom: 16,
     borderRadius: 12,
     border: "1px solid rgba(255,255,255,0.3)",
+    background: "rgba(255,255,255,0.1)",
     fontFamily: "Raleway, sans-serif",
     fontWeight: "bold",
-    color: "black",
+    color: "#fff",
     outline: "none",
     fontSize: 15,
-    transition: "0.3s",
   },
 
   button: {

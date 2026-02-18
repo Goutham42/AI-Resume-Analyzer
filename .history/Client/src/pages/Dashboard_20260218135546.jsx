@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import API from "../services/api";
 import { jsPDF } from "jspdf";
+import { useNavigate } from "react-router-dom";
+
 
 /* ---------- HELPERS ---------- */
 
@@ -13,7 +14,15 @@ const calculateScore = (text) => {
   if (text.length > 300) score += 20;
   if (text.length > 700) score += 20;
 
-  const keywords = ["react", "javascript", "node", "api", "project", "experience", "skills"];
+  const keywords = [
+    "react",
+    "javascript",
+    "node",
+    "api",
+    "project",
+    "experience",
+    "skills",
+  ];
   keywords.forEach((k) => lower.includes(k) && (score += 5));
 
   if (/\d+%|\d+\+|\d+ years/.test(text)) score += 10;
@@ -35,12 +44,15 @@ const detectSections = (text) => {
 
 // Parse AI feedback
 const parseFeedback = (text = "") => ({
-  strengths: text.match(/Strengths:(.*?)(Weaknesses:|$)/s)?.[1]?.trim() || "—",
-  weaknesses: text.match(/Weaknesses:(.*?)(Improvement|$)/s)?.[1]?.trim() || "—",
-  improvements: text.match(/Improvement tips:(.*)/s)?.[1]?.trim() || "—",
+  strengths:
+    text.match(/Strengths:(.*?)(Weaknesses:|$)/s)?.[1]?.trim() || "—",
+  weaknesses:
+    text.match(/Weaknesses:(.*?)(Improvement|$)/s)?.[1]?.trim() || "—",
+  improvements:
+    text.match(/Improvement tips:(.*)/s)?.[1]?.trim() || "—",
 });
 
-/* ---------- STYLES ---------- */
+/* ---------- STYLES (UNCHANGED) ---------- */
 
 const styles = {
   container: {
@@ -112,6 +124,14 @@ const styles = {
     color: "#fff",
     boxShadow: "0 8px 20px rgba(99,102,241,0.35)",
   },
+  badge: (ok) => ({
+    padding: "5px 10px",
+    borderRadius: 18,
+    fontSize: 12,
+    marginRight: 6,
+    background: ok ? "rgba(34,197,94,0.25)" : "rgba(239,68,68,0.25)",
+    border: `1px solid ${ok ? "#22c55e" : "#ef4444"}`,
+  }),
   meter: {
     height: 8,
     background: "rgba(255,255,255,0.2)",
@@ -137,28 +157,30 @@ const styles = {
     border: "1px solid rgba(255,255,255,0.3)",
     marginBottom: 14,
   },
+  historyItem: {
+    padding: "8px 4px",
+    borderBottom: "1px solid rgba(255,255,255,0.2)",
+    fontSize: 13,
+    opacity: 0.85,
+  },
 };
 
-/* ---------- DASHBOARD COMPONENT ---------- */
+/* ---------- COMPONENT ---------- */
 
 export default function Dashboard() {
-  const navigate = useNavigate();
   const isMobile = window.innerWidth < 768;
-
   const [resumeText, setResumeText] = useState("");
   const [jobRole, setJobRole] = useState("Frontend Developer");
   const [feedback, setFeedback] = useState(null);
   const [score, setScore] = useState(null);
+  const [sections, setSections] = useState({});
   const [history, setHistory] = useState([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
 
-  // Redirect if no token
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) navigate("/");
-    else setHistory(JSON.parse(localStorage.getItem("history")) || []);
-  }, [navigate]);
+    setHistory(JSON.parse(localStorage.getItem("history")) || []);
+  }, []);
 
   const hasValidFeedback =
     feedback &&
@@ -168,12 +190,18 @@ export default function Dashboard() {
 
   const handleAnalyze = async () => {
     if (!resumeText) return alert("Paste resume first!");
+
     setFeedback(null);
     setScore(null);
     setIsAnalyzing(true);
+    setSections(detectSections(resumeText));
 
     try {
-      const res = await API.post("/resume/analyze", { resumeText, jobRole });
+      const res = await API.post(
+        "/resume/analyze",
+        { resumeText, jobRole }
+      );
+
 
       const finalScore = calculateScore(resumeText);
       setScore(finalScore);
@@ -190,9 +218,11 @@ export default function Dashboard() {
       if (err.response?.status === 401) {
         alert("Session expired. Please login again.");
         localStorage.removeItem("token");
-        navigate("/");
+        window.location.href = "/";
+
       } else {
         alert(err.response?.data?.message || "AI service error");
+
       }
     } finally {
       setIsAnalyzing(false);
@@ -246,7 +276,7 @@ export default function Dashboard() {
               style={{ ...styles.button, width: isMobile ? "100%" : "auto" }}
               onClick={() => {
                 localStorage.clear();
-                navigate("/");
+                window.location.href = "/";
               }}
             >
               👋 Logout
@@ -254,9 +284,19 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div style={{ ...styles.content, flexDirection: isMobile ? "column" : "row" }}>
-          {/* LEFT PANEL */}
-          <div style={{ ...styles.panel, maxWidth: isMobile ? "100%" : 520 }}>
+        <div
+          style={{
+            ...styles.content,
+            flexDirection: isMobile ? "column" : "row",
+          }}
+        >
+          {/* LEFT */}
+          <div
+            style={{
+              ...styles.panel,
+              maxWidth: isMobile ? "100%" : 520,
+            }}
+          >
             <select
               value={jobRole}
               onChange={(e) => setJobRole(e.target.value)}
@@ -292,8 +332,13 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* RIGHT PANEL */}
-          <div style={{ ...styles.panel, maxWidth: isMobile ? "100%" : 520 }}>
+          {/* RIGHT */}
+          <div
+            style={{
+              ...styles.panel,
+              maxWidth: isMobile ? "100%" : 520,
+            }}
+          >
             {hasValidFeedback && !isAnalyzing && (
               <div style={styles.card}>
                 <h3>💪 Strengths</h3>

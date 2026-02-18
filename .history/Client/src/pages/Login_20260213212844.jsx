@@ -11,11 +11,11 @@ export default function Login() {
   const handleLogin = async () => {
     if (!email || !password) return alert("Fill all fields");
     setLoading(true);
-
     try {
       const res = await API.post("/auth/login", { email, password });
       localStorage.setItem("token", res.data.token);
-      navigate("/dashboard"); // redirect immediately
+      navigate("/dashboard");
+
     } catch {
       alert("Login failed. Check credentials.");
     } finally {
@@ -33,7 +33,7 @@ export default function Login() {
           style={styles.input}
           placeholder="Email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={e => setEmail(e.target.value)}
         />
 
         <input
@@ -41,11 +41,14 @@ export default function Login() {
           type="password"
           placeholder="Password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={e => setPassword(e.target.value)}
         />
 
         <button
-          style={{ ...styles.button, opacity: loading ? 0.7 : 1 }}
+          style={{
+            ...styles.button,
+            opacity: loading ? 0.7 : 1
+          }}
           onClick={handleLogin}
           disabled={loading}
         >
@@ -62,9 +65,6 @@ export default function Login() {
     </div>
   );
 }
-
-// ...styles unchanged from your previous code
-
 
 
 const styles = {

@@ -15,27 +15,22 @@ app.use(express.json());
 
 const allowedOrigins = [
   "http://localhost:5173",
-  process.env.CLIENT_URL
+  process.env.CLIENT_URL, // make sure this matches your live frontend
+  "https://ai-resume-analyzer-en9rpc1gg-gouthams-projects-6b3f110f.vercel.app" // Add exact Vercel URL
 ];
 
 app.use(cors({
   origin: function(origin, callback) {
     if (!origin) return callback(null, true); // allow Postman / curl
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    } else {
-      console.log(`Blocked CORS request from origin: ${origin}`);
-      return callback(new Error("CORS not allowed"), false);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = `CORS error: origin ${origin} not allowed`;
+      return callback(new Error(msg), false);
     }
+    return callback(null, true);
   },
   credentials: true,
-  methods: ["GET","POST","PUT","DELETE","OPTIONS"],
-  optionsSuccessStatus: 200 // fixes some preflight issues
+  methods: ["GET","POST","PUT","DELETE","OPTIONS"]
 }));
-
-
-
-
 
 // ---------- ROUTES ----------
 app.use("/auth", require("./routes/authRoutes"));
