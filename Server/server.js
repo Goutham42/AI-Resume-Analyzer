@@ -14,13 +14,14 @@ app.use(express.urlencoded({ extended: true }));
 // ---------- CORS ----------
 const allowedOrigins = [
   "http://localhost:5173", // local dev
-  process.env.CLIENT_URL,  // live frontend from .env
-  "https://ai-resume-analyzer-5r8n7rkat-gouthams-projects-6b3f110f.vercel.app" // exact Vercel URL
+  process.env.CLIENT_URL,  // if you have in .env
+  "https://ai-resume-analyzer-a878wm7iu-gouthams-projects-6b3f110f.vercel.app" // your current Vercel frontend
 ];
+
 
 app.use(cors({
   origin: function(origin, callback) {
-    if (!origin) return callback(null, true); // allow Postman / curl requests
+    if (!origin) return callback(null, true); // allow Postman/curl
     if (allowedOrigins.indexOf(origin) === -1) {
       return callback(new Error(`CORS error: origin ${origin} not allowed`), false);
     }
@@ -29,6 +30,7 @@ app.use(cors({
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
 }));
+
 
 // ---------- ROUTES ----------
 app.use("/auth", require("./routes/authRoutes"));
