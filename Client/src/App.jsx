@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useState } from "react";
 
 // Pages
 import Login from "./pages/Login";
@@ -7,6 +7,8 @@ import Register from "./pages/Register";
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem("token"));
+
   return (
     <Router>
       <Suspense fallback={<div>Loading...</div>}>
@@ -14,27 +16,27 @@ function App() {
           <Route
             path="/"
             element={
-              localStorage.getItem("token") ? (
+              isAuthenticated ? (
                 <Navigate to="/dashboard" />
               ) : (
-                <Login />
+                <Login onLogin={() => setIsAuthenticated(true)} />
               )
             }
           />
           <Route
             path="/register"
             element={
-              localStorage.getItem("token") ? (
+              isAuthenticated ? (
                 <Navigate to="/dashboard" />
               ) : (
-                <Register />
+                <Register onRegister={() => setIsAuthenticated(true)} />
               )
             }
           />
           <Route
             path="/dashboard"
             element={
-              localStorage.getItem("token") ? (
+              isAuthenticated ? (
                 <Dashboard />
               ) : (
                 <Navigate to="/" />

@@ -12,9 +12,9 @@ export default function Register() {
 
     try {
       const { data } = await API.post("/auth/register", { email, password });
-      localStorage.setItem("token", data.token);
+      localStorage.setItem("token", data.token); // store token
       alert("Account created successfully 🚀");
-      navigate("/dashboard"); // redirect immediately
+      navigate("/dashboard"); // navigate immediately
     } catch (err) {
       alert(err.response?.data?.message || "Registration failed. Try again.");
     }
@@ -62,6 +62,9 @@ export default function Register() {
     </div>
   );
 }
+
+// ...styles remain same as your previous code
+
 
 // ...styles unchanged from your previous code
 

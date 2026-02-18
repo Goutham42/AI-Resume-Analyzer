@@ -14,8 +14,8 @@ export default function Login() {
 
     try {
       const res = await API.post("/auth/login", { email, password });
-      localStorage.setItem("token", res.data.token);
-      navigate("/dashboard"); // redirect immediately
+      localStorage.setItem("token", res.data.token); // store token
+      navigate("/dashboard"); // navigate immediately
     } catch {
       alert("Login failed. Check credentials.");
     } finally {
@@ -62,6 +62,9 @@ export default function Login() {
     </div>
   );
 }
+
+// ...styles remain same as your previous code
+
 
 // ...styles unchanged from your previous code
 
