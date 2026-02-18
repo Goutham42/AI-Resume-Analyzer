@@ -9,19 +9,21 @@ export default function Login() {
   const navigate = useNavigate();
 
   const handleLogin = async () => {
-    if (!email || !password) return alert("Fill all fields");
-    setLoading(true);
+  if (!email || !password) return alert("Fill all fields");
+  setLoading(true);
 
-    try {
-      const res = await API.post("/auth/login", { email, password });
-      localStorage.setItem("token", res.data.token); // store token
-      navigate("/dashboard"); // navigate immediately
-    } catch {
-      alert("Login failed. Check credentials.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    const res = await API.post("/auth/login", { email, password });
+    localStorage.setItem("token", res.data.token); // store token
+    onLogin(); // 🔑 update auth state in App.jsx
+    navigate("/dashboard"); // navigate immediately
+  } catch {
+    alert("Login failed. Check credentials.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div style={styles.container}>

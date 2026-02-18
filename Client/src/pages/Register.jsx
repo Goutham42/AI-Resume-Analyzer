@@ -8,17 +8,19 @@ export default function Register() {
   const navigate = useNavigate();
 
   const handleRegister = async () => {
-    if (!email || !password) return alert("Fill all fields");
+  if (!email || !password) return alert("Fill all fields");
 
-    try {
-      const { data } = await API.post("/auth/register", { email, password });
-      localStorage.setItem("token", data.token); // store token
-      alert("Account created successfully 🚀");
-      navigate("/dashboard"); // navigate immediately
-    } catch (err) {
-      alert(err.response?.data?.message || "Registration failed. Try again.");
-    }
-  };
+  try {
+    const { data } = await API.post("/auth/register", { email, password });
+    localStorage.setItem("token", data.token); // store token
+    onRegister(); // 🔑 update auth state in App.jsx
+    navigate("/dashboard"); // navigate immediately
+  } catch (err) {
+    alert(err.response?.data?.message || "Registration failed. Try again.");
+  }
+};
+
+
 
   return (
     <div style={styles.container}>
