@@ -8,37 +8,29 @@ dotenv.config();
 const app = express();
 
 // ---------- MIDDLEWARE ----------
-app.use(express.json({ limit: "2mb" }));
+app.use(express.json({ limit: "2mb" })); // set JSON size limit
 app.use(express.urlencoded({ extended: true }));
 
 // ---------- CORS ----------
-app.use(cors({
-  origin: function(origin, callback) {
-    if (!origin) return callback(null, true); // Postman / curl
-
-    // Allow localhost, your main frontend URL, or any *.vercel.app
-    const allowedOrigins = [
-  "http://localhost:5173", // local dev
-  process.env.CLIENT_URL    // optional: set main Vercel link in .env if you want
+const allowedOrigins = [
+  "http://localhost:5173",   // local dev
+  process.env.CLIENT_URL     // optional: main Vercel link
 ];
 
 app.use(cors({
   origin: function(origin, callback) {
     if (!origin) return callback(null, true); // allow Postman/curl
-    // Allow localhost OR any Vercel subdomain
-    if (
-      origin.startsWith("https://ai-resume-analyzer-") && 
-      origin.endsWith(".vercel.app")
-    ) {
+    // Allow localhost or main frontend URL
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    // Allow any Vercel deployment subdomain
+    if (origin.startsWith("https://ai-resume-analyzer-") && origin.endsWith(".vercel.app")) {
       return callback(null, true);
     }
-    if (allowedOrigins.indexOf(origin) !== -1) return callback(null, true);
     return callback(new Error(`CORS error: origin ${origin} not allowed`), false);
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
 }));
-
 
 // ---------- ROUTES ----------
 app.use("/auth", require("./routes/authRoutes"));
