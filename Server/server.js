@@ -17,25 +17,28 @@ app.use(cors({
     if (!origin) return callback(null, true); // Postman / curl
 
     // Allow localhost, your main frontend URL, or any *.vercel.app
-    const allowedHosts = [
-      "http://localhost:5173",
-      process.env.CLIENT_URL
-    ];
+    const allowedOrigins = [
+  "http://localhost:5173", // local dev
+  process.env.CLIENT_URL    // optional: set main Vercel link in .env if you want
+];
 
-    try {
-      const url = new URL(origin);
-      if (allowedHosts.includes(origin) || url.hostname.endsWith(".vercel.app")) {
-        return callback(null, true);
-      }
-    } catch (err) {
-      return callback(new Error(`CORS error: invalid origin ${origin}`), false);
+app.use(cors({
+  origin: function(origin, callback) {
+    if (!origin) return callback(null, true); // allow Postman/curl
+    // Allow localhost OR any Vercel subdomain
+    if (
+      origin.startsWith("https://ai-resume-analyzer-") && 
+      origin.endsWith(".vercel.app")
+    ) {
+      return callback(null, true);
     }
-
+    if (allowedOrigins.indexOf(origin) !== -1) return callback(null, true);
     return callback(new Error(`CORS error: origin ${origin} not allowed`), false);
   },
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
 }));
+
 
 // ---------- ROUTES ----------
 app.use("/auth", require("./routes/authRoutes"));
