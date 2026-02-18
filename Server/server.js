@@ -8,25 +8,29 @@ dotenv.config();
 const app = express();
 
 // ---------- MIDDLEWARE ----------
-app.use(express.json({ limit: "2mb" })); // JSON limit
+app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: true }));
 
 // ---------- CORS ----------
-const allowedOrigins = [
-  "http://localhost:5173", // local dev
-  process.env.CLIENT_URL,  // your production frontend
-];
-
-// Dynamically allow any Vercel frontend
 app.use(cors({
   origin: function(origin, callback) {
-    if (!origin) return callback(null, true); // allow Postman / curl
-    if (
-      allowedOrigins.includes(origin) || 
-      origin.endsWith(".vercel.app")
-    ) {
-      return callback(null, true);
+    if (!origin) return callback(null, true); // Postman / curl
+
+    // Allow localhost, your main frontend URL, or any *.vercel.app
+    const allowedHosts = [
+      "http://localhost:5173",
+      process.env.CLIENT_URL
+    ];
+
+    try {
+      const url = new URL(origin);
+      if (allowedHosts.includes(origin) || url.hostname.endsWith(".vercel.app")) {
+        return callback(null, true);
+      }
+    } catch (err) {
+      return callback(new Error(`CORS error: invalid origin ${origin}`), false);
     }
+
     return callback(new Error(`CORS error: origin ${origin} not allowed`), false);
   },
   credentials: true,
